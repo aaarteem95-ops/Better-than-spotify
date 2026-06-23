@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yellow music — AC/DC & Rockstar Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #000000;
+            --bg-panel: rgba(18, 18, 18, 0.85);
+            --bg-card: #141414;
+            --bg-card-hover: #222222;
+            --accent-color: #f3ce13; /* Фирменный желтый */
+            --gta-pink: #ff007f;     /* Неоновый розовый для GTA VI */
+            --text-main: #ffffff;
+            --text-muted: #b3b3b3;
+            --cursor-size: 10px;
+            --cursor-trail-size: 30px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: none !important; /* Полностью блокируем дефолтный курсор везде */
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* --- ЭФФЕКТ LIQUID BACKGROUND (ЖИДКИЙ ФОН) --- */
+        .liquid-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            overflow: hidden;
+            background: linear-gradient(135deg, #000000 0%, #171702 100%);
+        }
+
+        .blob {
+            position: absolute;
+            background: var(--accent-color);
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.1;
+            animation: liquidate linear infinite;
+        }
+
+        .blob-1 { width: 450px; height: 450px; top: -100px; left: -100px; animation-duration: 22s; }
+        .blob-2 { width: 550px; height: 550px; bottom: -150px; right: -150px; animation-duration: 28s; animation-direction: reverse; }
+        .blob-3 { width: 350px; height: 350px; top: 40%; left: 40%; animation-duration: 18s; }
+
+        @keyframes liquidate {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(60px, 40px) scale(1.15) rotate(90deg); }
+            66% { transform: translate(-40px, 60px) scale(0.85) rotate(180deg); }
+            100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+        }
+
+        /* --- УЛУЧШЕННЫЙ КАСТОМНЫЙ КУРСОР --- */
+        #custom-cursor {
+            width: var(--cursor-size); height: var(--cursor-size);
+            background-color: var(--accent-color);
+            border-radius: 50%; position: fixed;
+            pointer-events: none; z-index: 99999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease, background-color 0.3s;
+        }
+
+        #custom-cursor-trail {
+            width: var(--cursor-trail-size); height: var(--cursor-trail-size);
+            border: 2px solid var(--accent-color);
+            border-radius: 50%; position: fixed;
+            pointer-events: none; z-index: 99998;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            transition: width 0.25s ease, height 0.25s ease, background-color 0.25s, border-color 0.3s, transform 0.1s ease;
+        }
+
+        /* НАДЁЖНЫЙ ИЗОЛИРОВАННЫЙ КОНТЕЙНЕР ДЛЯ СЕТКИ */
+        .app-wrapper {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-rows: calc(100vh - 90px) 90px;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ИНТЕРФЕЙС ПЛЕЕРА */
+        .app-container {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            height: 100%;
+            padding: 8px; gap: 8px;
+            overflow: hidden;
+        }
+
+        .sidebar { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+
+        .sidebar-panel {
+            background-color: var(--bg-panel);
+            border-radius: 8px; padding: 20px;
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            color: var(--accent-color);
+            font-size: 24px; font-weight: 800;
+            margin-bottom: 25px;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .nav-list { list-style: none; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 18px;
+            color: var(--text-muted); font-weight: bold;
+            padding: 12px 0; transition: color 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active { color: var(--text-main); }
+        .nav-item.active i { color: var(--accent-color); }
+        .library { flex-grow: 1; }
+
+        .main-content {
+            background-color: var(--bg-panel);
+            border-radius: 8px; overflow-y: auto;
+            padding: 20px; backdrop-filter: blur(12px);
+            height: 100%;
+        }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+
+        .search-box {
+            background-color: #242424; border-radius: 50px;
+            padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+            width: 350px; border: 1px solid transparent; transition: border 0.3s;
+        }
+        .search-box:focus-within { border-color: var(--accent-color); }
+        .search-box input { background: none; border: none; color: white; outline: none; width: 100%; font-size: 14px; }
+
+        .header-buttons { display: flex; gap: 10px; align-items: center; }
+
+        .upload-btn {
+            background: transparent;
+            border: 1px solid #00ff7f;
+            color: #00ff7f; padding: 10px 20px;
+            border-radius: 20px; font-weight: 900;
+            font-size: 12px; letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(0, 255, 127, 0.1);
+            transition: all 0.3s ease;
+        }
+        .upload-btn:hover {
+            background: #00ff7f;
+            color: #000;
+            box-shadow: 0 0 20px #00ff7f;
+            transform: scale(1.05);
+        }
+
+        .profile-btn {
+            background: linear-gradient(135deg, #111 0%, #222 100%);
+            border: 1px solid var(--accent-color);
+            color: #fff; padding: 10px 20px;
+            border-radius: 20px; font-weight: 900;
+            font-size: 12px; letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(243, 206, 19, 0.2);
+            transition: all 0.3s ease;
+        }
+        .profile-btn:hover {
+            background: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 20px var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        /* СЕТКА С ТРЕКАМИ */
+        .shelf h2 { font-size: 26px; margin-bottom: 20px; font-weight: 700; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 20px; }
+        
+        .card {
+            background-color: var(--bg-card); padding: 16px;
+            border-radius: 10px; transition: all 0.3s ease; position: relative;
+        }
+        .card:hover { background-color: var(--bg-card-hover); transform: translateY(-4px); }
+
+        .card-img-container { position: relative; margin-bottom: 14px; aspect-ratio: 1; width: 100%; }
+        .card img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+
+        .card-title { font-size: 15px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-artist { color: var(--text-muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Кнопки управления карточкой */
+        .like-btn {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(0,0,0,0.7); border: none; color: white;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s, color 0.2s; z-index: 3;
+        }
+        .delete-btn {
+            position: absolute; top: 12px; left: 12px;
+            background: rgba(0,0,0,0.7); border: none; color: #ff4d4d;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s, background-color 0.2s; z-index: 3;
+        }
+        .card:hover .like-btn, .card:hover .delete-btn, .like-btn.liked { opacity: 1; }
+        .like-btn.liked { color: var(--accent-color); }
+        .delete-btn:hover { background: #ff4d4d; color: white; transform: scale(1.1); }
+
+        .card .play-btn-hover {
+            width: 48px; height: 48px; border-radius: 50%;
+            background-color: var(--accent-color); color: black;
+            position: absolute; right: 12px; bottom: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; opacity: 0; transform: translateY(8px);
+            transition: all 0.25s ease; box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+        .card-img-container:hover .play-btn-hover { opacity: 1; transform: translateY(0); }
+        
+        .card.playing { border: 1px solid var(--accent-color); background-color: var(--bg-card-hover); }
+        .card.playing .card-title { color: var(--accent-color); }
+        .card.playing .play-btn-hover { opacity: 1; transform: translateY(0); background-color: #ffffff; }
+
+        .empty-library { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-library i { font-size: 48px; color: var(--accent-color); margin-bottom: 15px; display: block; }
+
+        /* УПРАВЛЕНИЕ ЗВУКОМ (ФУТЕР) */
+        .player-bar {
+            background-color: #050505; display: flex; justify-content: space-between;
+            align-items: center; padding: 0 24px; height: 90px;
+            border-top: 1px solid rgba(243, 206, 19, 0.25);
+            backdrop-filter: blur(20px);
+        }
+
+        .track-info { display: flex; align-items: center; gap: 14px; width: 30%; }
+        .track-info img { width: 55px; height: 55px; border-radius: 4px; object-fit: cover; background: #222; }
+        .track-details { overflow: hidden; }
+        .track-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-author { font-size: 12px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .player-controls { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 40%; }
+        .control-buttons { display: flex; align-items: center; gap: 22px; }
+        .control-btn { background: none; border: none; color: var(--text-muted); font-size: 16px; }
+        .control-btn:hover { color: var(--text-main); }
+        .control-btn.active { color: var(--accent-color); text-shadow: 0 0 8px var(--accent-color); }
+
+        .play-pause-btn {
+            width: 38px; height: 38px; border-radius: 50%;
+            background-color: var(--text-main); color: black;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .play-pause-btn:hover { transform: scale(1.05); background-color: var(--accent-color); }
+
+        .progress-container { display: flex; align-items: center; gap: 10px; width: 100%; }
+        .time { font-size: 11px; color: var(--text-muted); min-width: 35px; font-family: monospace; }
+        .slider-wrapper { flex-grow: 1; display: flex; align-items: center; }
+
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: #4d4d4d; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); opacity: 0; }
+        .slider-wrapper:hover input[type="range"]::-webkit-slider-thumb { opacity: 1; background: var(--accent-color); }
+        
+        .volume-controls { display: flex; align-items: center; gap: 12px; width: 30%; justify-content: flex-end; }
+        .volume-controls input[type="range"] { width: 100px; }
+
+        /* --- ПОЛНОЭКРАННОЕ МЕНЮ GTA VI --- */
+        .gta-menu-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: linear-gradient(45deg, rgba(10, 5, 20, 0.99), rgba(0, 0, 0, 0.97));
+            z-index: 99995; display: none;
+            opacity: 0; transition: opacity 0.4s ease;
+            backdrop-filter: blur(25px);
+            padding: 60px 100px;
+            box-shadow: inset 0 0 100px rgba(255, 0, 127, 0.2);
+        }
+        .gta-menu-overlay.active { display: block; opacity: 1; }
+
+        .gta-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .gta-logo-container {
+            position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px;
+        }
+        .gta-title-main {
+            font-family: 'Georgia', serif; font-size: 32px; font-weight: bold; color: #ffffff;
+            text-transform: uppercase; position: relative; z-index: 2; letter-spacing: 1px;
+            text-shadow: 0px 4px 8px rgba(0, 0, 0, 0.9);
+        }
+        .gta-title-bg-vi {
+            position: absolute; font-family: 'Impact', 'Arial Black', sans-serif; font-size: 95px;
+            font-weight: 900; font-style: italic;
+            background: linear-gradient(130deg, var(--gta-pink) 20%, #ff5e00 60%, var(--accent-color) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            z-index: 1; opacity: 0.85; letter-spacing: -2px;
+            filter: drop-shadow(0 0 15px rgba(255, 0, 127, 0.55));
+            animation: gtaNeonPulse 3s infinite alternate ease-in-out;
+        }
+
+        @keyframes gtaNeonPulse {
+            0% { filter: drop-shadow(0 0 10px rgba(255, 0, 127, 0.4)); transform: scale(1); }
+            100% { filter: drop-shadow(0 0 25px rgba(255, 0, 127, 0.8)); transform: scale(1.04) rotate(-1deg); }
+        }
+
+        .gta-close-btn {
+            background: transparent; border: 2px solid var(--gta-pink);
+            color: var(--gta-pink); padding: 8px 20px; font-weight: bold;
+            border-radius: 4px; text-transform: uppercase; font-size: 12px; z-index: 10;
+        }
+        .gta-close-btn:hover { background: var(--gta-pink); color: #000; box-shadow: 0 0 15px var(--gta-pink); }
+
+        .gta-layout { display: grid; grid-template-columns: 350px 1fr; gap: 60px; height: calc(100% - 120px); }
+        .gta-nav { display: flex; flex-direction: column; gap: 15px; }
+        
+        .gta-nav-item {
+            font-size: 24px; font-weight: 800; text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6); padding: 15px 20px;
+            border-left: 4px solid transparent; transition: all 0.2s ease;
+        }
+        .gta-nav-item:hover, .gta-nav-item.active {
+            color: #fff; background: rgba(255, 0, 127, 0.1);
+            border-left-color: var(--gta-pink); padding-left: 30px;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+        }
+
+        .gta-content-box {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px; padding: 40px; position: relative;
+            overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .gta-content-box::before {
+            content: "VICE CITY"; position: absolute; right: -50px; bottom: -30px;
+            font-size: 130px; font-weight: 900; font-style: italic;
+            color: rgba(255, 255, 255, 0.01); pointer-events: none;
+        }
+        .gta-status { font-size: 14px; color: var(--gta-pink); font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+        .gta-desc { font-size: 18px; color: var(--text-muted); line-height: 1.6; margin-top: 20px; max-width: 600px; }
+
+        /* ИГРОВОЙ КОНТЕНТ ДЛЯ GTA ONLINE */
+        #gta-game-content { display: none; flex-direction: column; gap: 15px; width: 100%; }
+        .race-container { display: flex; gap: 30px; width: 100%; margin-top: 20px; align-items: flex-start; }
+        #race-canvas { background: #111; border: 3px solid var(--gta-pink); border-radius: 6px; box-shadow: 0 0 20px rgba(255, 0, 127, 0.3); }
+        .game-info-panel { display: flex; flex-direction: column; gap: 10px; }
+        .game-score-text { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: 1px; text-shadow: 0 0 10px var(--gta-pink); }
+        .game-lives-text { font-size: 22px; font-weight: bold; color: #ff4d4d; letter-spacing: 1px; margin-bottom: 15px; }
+        .game-controls-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+        .game-controls-desc b { color: var(--accent-color); }
+        .game-start-btn {
+            background: transparent; border: 2px solid #00ff7f; color: #00ff7f;
+            padding: 12px 24px; font-weight: bold; font-size: 14px; border-radius: 4px;
+            letter-spacing: 2px; text-transform: uppercase; transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .game-start-btn:hover { background: #00ff7f; color: #000; box-shadow: 0 0 15px #00ff7f; }
+    </style>
+</head>
+<body>
+
+    <div class="liquid-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div id="custom-cursor"></div>
+    <div id="custom-cursor-trail"></div>
+
+    <div class="app-wrapper">
+        
+        <div class="app-container">
+            <aside class="sidebar">
+                <div class="sidebar-panel">
+                    <div class="logo"><i class="fa-solid fa-bolt"></i> Yellow music</div>
+                    <ul class="nav-list">
+                        <li class="nav-item active" id="btn-home"><i class="fa-solid fa-house"></i> Главная</li>
+                        <li class="nav-item" id="btn-search-nav"><i class="fa-solid fa-magnifying-glass"></i> Поиск</li>
+                    </ul>
+                </div>
+                <div class="sidebar-panel library">
+                    <ul class="nav-list">
+                        <li class="nav-item" id="btn-library"><i class="fa-solid fa-bookmark"></i> Моя медиатека</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <header>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i>
+                        <input type="text" id="search-input" placeholder="Поиск">
+                    </div>
+                    <div class="header-buttons">
+                        <input type="file" id="file-uploader" multiple accept="audio/*" style="display:none;">
+                        <button class="upload-btn" id="upload-btn"><i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ MP3</button>
+                        <button class="profile-btn" id="rockstar-btn"><i class="fa-solid fa-star"></i> ROCKSTAR</button>
+                    </div>
+                </header>
+
+                <section class="shelf">
+                    <h2 id="shelf-title">Треки медиатеки</h2>
+                    <div class="grid" id="tracks-grid"></div>
+                </section>
+            </main>
+        </div>
+
+        <footer class="player-bar">
+            <div class="track-info">
+                <img id="current-cover" src="" alt="">
+                <div class="track-details">
+                    <div class="track-name" id="current-title">Выберите трек из списка</div>
+                    <div class="track-author" id="current-artist">Загрузите свои файлы</div>
+                </div>
+                <button class="control-btn" id="player-like-btn" style="margin-left: 15px;"><i class="fa-regular fa-heart"></i></button>
+            </div>
+
+            <div class="player-controls">
+                <div class="control-buttons">
+                    <button class="control-btn" id="shuffle"><i class="fa-solid fa-shuffle"></i></button>
+                    <button class="control-btn" id="prev"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="control-btn play-pause-btn" id="play-pause"><i class="fa-solid fa-play"></i></button>
+                    <button class="control-btn" id="next"><i class="fa-solid fa-forward-step"></i></button>
+                    <button class="control-btn" id="repeat"><i class="fa-solid fa-repeat"></i></button>
+                </div>
+                <div class="progress-container">
+                    <div class="time" id="current-time">0:00</div>
+                    <div class="slider-wrapper">
+                        <input type="range" id="progress-bar" min="0" max="100" value="0">
+                    </div>
+                    <div class="time" id="total-duration">0:00</div>
+                </div>
+            </div>
+
+            <div class="volume-controls">
+                <button class="control-btn" id="mute-btn"><i class="fa-solid fa-volume-high"></i></button>
+                <input type="range" id="volume-bar" min="0" max="100" value="70">
+            </div>
+        </footer>
+    </div>
+
+    <div class="gta-menu-overlay" id="gta-menu">
+        <div class="gta-header">
+            <div class="gta-logo-container">
+                <div class="gta-title-bg-vi">VI</div>
+                <div class="gta-title-main">Grand Theft Auto</div>
+            </div>
+            <button class="gta-close-btn" id="gta-close">Вернуться в плеер</button>
+        </div>
+        <div class="gta-layout">
+            <div class="gta-nav">
+                <div class="gta-nav-item active" data-gta-tab="story">Story Mode</div>
+                <div class="gta-nav-item" data-gta-tab="online">GTA Online</div>
+                <div class="gta-nav-item" data-gta-tab="map">Map (Vice City)</div>
+                <div class="gta-nav-item" data-gta-tab="settings">Settings</div>
+                <div class="gta-nav-item" data-gta-tab="store">Rockstar Games Store</div>
+            </div>
+            <div class="gta-content-box">
+                <div id="gta-static-content">
+                    <div class="gta-status" id="gta-status">// СТАТУС: ГОТОВНОСТЬ К ЗАПУСКУ</div>
+                    <div class="gta-desc" id="gta-desc">Добро пожаловать в штат Леонида. Исследуйте неоновые улицы Вайс-Сити под ваши личные загруженные треки.</div>
+                </div>
+
+                <div id="gta-game-content">
+                    <div class="gta-status" id="race-status">// СТАТУС: МИНИ-ИГРА "VICE CITY ARCADE RACE"</div>
+                    <div class="race-container">
+                        <canvas id="race-canvas" width="400" height="260"></canvas>
+                        <div class="game-info-panel">
+                            <div class="game-score-text" id="game-score">Счёт: 0</div>
+                            <div class="game-lives-text" id="game-lives">Жизни: ❤️❤️❤️</div>
+                            <div class="game-controls-desc">
+                                Управление спорткаром:<br>
+                                Кнопки <b>A / D</b> или <b>Стрелки влево / вправо</b>.<br><br>
+                                Уворачивайся от встречных машин.<br>
+                                Лови бонусы <b>❤️</b> на дороге, чтобы восстановить здоровье и починить кузов!
+                            </div>
+                            <button class="game-start-btn" id="start-race-btn">СТАРТ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 12px; color: rgba(255,255,255,0.2); margin-top: 15px;">© 2026 Rockstar Games, Inc. Модуль интерактивных развлечений запущен.</div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+
+    <script>
+        const tracks = [];
+        const coverColors = ['#780000', '#3d348b', '#1a1a1a', '#0b132b', '#ff007f', '#2b2d42', '#005f73', '#94d2bd'];
+
+        const gtaTabContent = {
+            story: {
+                status: '// СТАТУС: ГОТОВНОСТЬ К ЗАПУСКУ',
+                desc: 'Добро пожаловать в штат Леонида. Исследуйте неоновые улицы Вайс-Сити под ваши личные загруженные треки. Одиночная кампания Lucia & Jason полностью синхронизирована с вашей медиатекой Yellow music.'
+            },
+            map: {
+                status: '// СТАТУС: СИСТЕМА GPS СИНХРОНИЗИРОВАНА',
+                desc: 'Интерактивная карта Вайс-Сити и окрестных округов загружена на 100%. Все ключевые точки, уличные гонки и музыкальные клубы нанесены на радар твоего аудио-плеера.'
+            },
+            settings: {
+                status: '// НАСТРОЙКИ СИСТЕМЫ И ЗВУКА',
+                desc: 'Графика: Трассировка лучей [УЛЬТРА]. Звуковой движок: Кинематографичный Yellow Engine 3D. Кастомный интеллектуальный курсор с динамическим шлейфом переведен в игровой режим.'
+            },
+            store: {
+                status: '// МАГАЗИН ROCKSTAR GAMES',
+                desc: 'Все дополнения, новые паки кастомных винилов и секретный транспорт Леониды доступны бесплатно для всех пользователей плеера Yellow Music. Лицензия подтверждена локальным JS-кодом.'
+            }
+        };
+
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let isShuffle = false;
+        let isRepeat = false;
+        let currentView = 'home';
+        let searchQuery = "";
+
+        const audio = document.getElementById('audio-player');
+        const grid = document.getElementById('tracks-grid');
+        const shelfTitle = document.getElementById('shelf-title');
+        const searchInput = document.getElementById('search-input');
+        
+        const btnHome = document.getElementById('btn-home');
+        const btnSearchNav = document.getElementById('btn-search-nav');
+        const btnLibrary = document.getElementById('btn-library');
+
+        const playPauseBtn = document.getElementById('play-pause');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        const shuffleBtn = document.getElementById('shuffle');
+        const repeatBtn = document.getElementById('repeat');
+        const progressBar = document.getElementById('progress-bar');
+        const volumeBar = document.getElementById('volume-bar');
+        const muteBtn = document.getElementById('mute-btn');
+        const playerLikeBtn = document.getElementById('player-like-btn');
+        
+        const currentCover = document.getElementById('current-cover');
+        const currentTitle = document.getElementById('current-title');
+        const currentArtist = document.getElementById('current-artist');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalDurationEl = document.getElementById('total-duration');
+
+        const gtaMenu = document.getElementById('gta-menu');
+        const rockstarBtn = document.getElementById('rockstar-btn');
+        const gtaClose = document.getElementById('gta-close');
+        const gtaStatusEl = document.getElementById('gta-status');
+        const gtaDescEl = document.getElementById('gta-desc');
+        
+        const cursor = document.getElementById('custom-cursor');
+        const trail = document.getElementById('custom-cursor-trail');
+        let mouseX = 0, mouseY = 0;
+        let trailX = 0, trailY = 0;
+
+        // --- ЛОГИКА ЗАГРУЗКИ СВОИХ MP3 ---
+        const uploadBtn = document.getElementById('upload-btn');
+        const fileUploader = document.getElementById('file-uploader');
+
+        uploadBtn.addEventListener('click', () => fileUploader.click());
+
+        fileUploader.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const blobURL = URL.createObjectURL(file);
+                const trackName = file.name.replace(/\.[^/.]+$/, "");
+                const randomColor = coverColors[Math.floor(Math.random() * coverColors.length)];
+                const svgCover = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='${encodeURIComponent(randomColor)}'/><circle cx='100' cy='100' r='45' fill='none' stroke='%23f3ce13' stroke-width='4'/><text x='100' y='105' fill='%23ffffff' font-family='Impact' font-size='16' text-anchor='middle'>${encodeURIComponent(trackName.substring(0, 12).toUpperCase())}</text></svg>`;
+
+                tracks.push({
+                    id: tracks.length,
+                    title: trackName,
+                    artist: "Локальный файл",
+                    cover: svgCover,
+                    src: blobURL,
+                    liked: false
+                });
+            }
+
+            if (tracks.length === files.length) {
+                loadTrack(0);
+            } else {
+                renderTracks();
+            }
+        });
+
+        // --- УДАЛЕНИЕ ТРЕКОВ ---
+        window.deleteTrack = function(event, trackId) {
+            event.stopPropagation();
+            const index = tracks.findIndex(t => t.id === trackId);
+            if (index === -1) return;
+
+            URL.revokeObjectURL(tracks[index].src);
+            const deletingCurrent = (index === currentTrackIndex);
+            tracks.splice(index, 1);
+
+            tracks.forEach((t, i) => t.id = i);
+
+            if (tracks.length === 0) {
+                audio.pause(); audio.src = ''; isPlaying = false; currentTrackIndex = 0;
+                currentCover.src = ''; currentTitle.textContent = 'Выберите трек из списка';
+                currentArtist.textContent = 'Загрузите свои файлы';
+                playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            } else if (deletingCurrent) {
+                currentTrackIndex = currentTrackIndex % tracks.length;
+                loadTrack(currentTrackIndex);
+                if (isPlaying) playTrack();
+            } else if (index < currentTrackIndex) {
+                currentTrackIndex--;
+            }
+
+            renderTracks();
+        }
+
+        // --- ФИЗИКА ДВИЖЕНИЯ КУРСOРА ---
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
+        });
+
+        function animateCursorTrail() {
+            trailX += (mouseX - trailX) * 0.15; trailY += (mouseY - trailY) * 0.15;
+            trail.style.left = trailX + 'px'; trail.style.top = trailY + 'px';
+            requestAnimationFrame(animateCursorTrail);
+        }
+        animateCursorTrail();
+
+        document.addEventListener('mousedown', () => {
+            trail.style.transform = 'translate(-50%, -50%) scale(0.6)';
+            cursor.style.transform = 'translate(-50%, -50%) scale(1.6)';
+        });
+        document.addEventListener('mouseup', () => {
+            trail.style.transform = 'translate(-50%, -50%) scale(1)';
+            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+
+        function syncCursorInteractions() {
+            const targets = document.querySelectorAll('button, .card, .nav-item, .gta-nav-item, input[type="range"], .delete-btn');
+            targets.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    trail.style.width = '55px'; trail.style.height = '55px';
+                    trail.style.backgroundColor = gtaMenu.classList.contains('active') ? 'rgba(255, 0, 127, 0.12)' : 'rgba(243, 206, 19, 0.12)';
+                });
+                el.addEventListener('mouseleave', () => {
+                    trail.style.width = '30px'; trail.style.height = '30px'; trail.style.backgroundColor = 'transparent';
+                });
+            });
+        }
+
+        // --- ПРОДВИНУТЫЙ ДВИЖОК ГОНОК ДЛЯ GTA ONLINE С ДИНАМИЧЕСКИМ КУЗОВОМ ---
+        const canvas = document.getElementById('race-canvas');
+        const ctx = canvas.getContext('2d');
+        const startRaceBtn = document.getElementById('start-race-btn');
+        const gameScoreEl = document.getElementById('game-score');
+        const gameLivesEl = document.getElementById('game-lives');
+        const raceStatusEl = document.getElementById('race-status');
+
+        let gameRunning = false;
+        let gameScore = 0;
+        let scoreTicks = 0;
+        let playerCar = { 
+            x: 185, y: 200, w: 30, h: 50, speed: 6, 
+            lives: 3, isInvulnerable: false, invulnTimer: 0 
+        };
+        let trafficCars = [];
+        let heartItems = []; 
+        let smokeParticles = []; // Частицы дыма из капота автомобиля
+        let keys = {};
+
+        window.addEventListener('keydown', e => { if([37,39,65,68].includes(e.keyCode)) keys[e.keyCode] = true; });
+        window.addEventListener('keyup', e => { if([37,39,65,68].includes(e.keyCode)) keys[e.keyCode] = false; });
+
+        startRaceBtn.addEventListener('click', () => {
+            if(gameRunning) return;
+            gameRunning = true; 
+            gameScore = 0; 
+            scoreTicks = 0;
+            playerCar.x = 185; 
+            playerCar.lives = 3;
+            playerCar.isInvulnerable = false;
+            playerCar.invulnTimer = 0;
+            trafficCars = [];
+            heartItems = []; 
+            smokeParticles = [];
+            
+            raceStatusEl.textContent = '// СТАТУС: МАКСИМАЛЬНАЯ СКОРОСТЬ';
+            gameScoreEl.textContent = 'Счёт: 0';
+            updateLivesUI();
+            startRaceBtn.textContent = 'РЕСТАРТ';
+            runRaceLoop();
+        });
+
+        function updateLivesUI() {
+            gameLivesEl.textContent = 'Жизни: ' + '❤️'.repeat(Math.max(0, playerCar.lives));
+        }
+
+        // Генератор частиц дыма
+        function createSmoke(x, y, count, type) {
+            for(let i=0; i<count; i++) {
+                smokeParticles.push({
+                    x: x + Math.random() * 20 - 10,
+                    y: y,
+                    vx: Math.random() * 2 - 1,
+                    vy: -(1 + Math.random() * 2),
+                    size: 3 + Math.random() * 5,
+                    alpha: 0.7,
+                    type: type // 'grey' или 'heavy' (черно-красный)
+                });
+            }
+        }
+
+        function runRaceLoop() {
+            if (!gameRunning) return;
+            
+            scoreTicks++;
+            if (scoreTicks % 10 === 0) {
+                gameScore += 1;
+                gameScoreEl.textContent = `Счёт: ${gameScore}`;
+            }
+
+            if (playerCar.isInvulnerable) {
+                playerCar.invulnTimer--;
+                if (playerCar.invulnTimer <= 0) {
+                    playerCar.isInvulnerable = false;
+                }
+            }
+
+            if (keys[37] || keys[65]) if (playerCar.x > 60) playerCar.x -= playerCar.speed;
+            if (keys[39] || keys[68]) if (playerCar.x < 310) playerCar.x += playerCar.speed;
+
+            if (Math.random() < 0.025 && trafficCars.length < 3) {
+                const lanes = [80, 185, 290];
+                const selectedLane = lanes[Math.floor(Math.random() * lanes.length)];
+                if (!trafficCars.some(c => c.y < 80 && c.x === selectedLane)) {
+                    trafficCars.push({ x: selectedLane, y: -60, w: 30, h: 50, speed: 3 + Math.random() * 4 });
+                }
+            }
+
+            if (Math.random() < 0.006 && heartItems.length < 1) {
+                const lanes = [85, 190, 295]; 
+                const selectedLane = lanes[Math.floor(Math.random() * lanes.length)];
+                if (!trafficCars.some(c => c.y < 120 && Math.abs(c.x - (selectedLane - 5)) < 10)) {
+                    heartItems.push({ x: selectedLane, y: -40, size: 20, speed: 4 });
+                }
+            }
+
+            // Логика выпускания дыма в зависимости от сердечек
+            if (playerCar.lives === 2 && scoreTicks % 4 === 0) {
+                createSmoke(playerCar.x + playerCar.w/2, playerCar.y + 5, 1, 'grey');
+            } else if (playerCar.lives === 1 && scoreTicks % 2 === 0) {
+                createSmoke(playerCar.x + playerCar.w/2, playerCar.y + 5, 2, 'heavy');
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1e1e24'; ctx.fillRect(50, 0, 300, canvas.height); 
+            ctx.fillStyle = 'var(--gta-pink)'; ctx.fillRect(45, 0, 5, canvas.height); ctx.fillRect(350, 0, 5, canvas.height); 
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 2; ctx.setLineDash([15, 15]);
+            ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, canvas.height); ctx.moveTo(250, 0); ctx.lineTo(250, canvas.height); ctx.stroke();
+
+            // ОТРЕНДЕРИТЬ ИГРОКА (ДИНАМИЧЕСКИЙ КУЗОВ)
+            let drawPlayer = true;
+            if (playerCar.isInvulnerable && Math.floor(scoreTicks / 5) % 2 === 0) {
+                drawPlayer = false; 
+            }
+
+            if (drawPlayer) {
+                ctx.save();
+                
+                // Изменение оттенка желтого и деформация геометрии при повреждениях
+                if (playerCar.lives === 3) {
+                    ctx.fillStyle = '#ffea00'; // Чистый желтый
+                    ctx.fillRect(playerCar.x, playerCar.y, playerCar.w, playerCar.h);
+                    
+                    // Стекло целое тонированное
+                    ctx.fillStyle = '#111111';
+                    ctx.fillRect(playerCar.x + 4, playerCar.y + 12, playerCar.w - 8, 12);
+                } 
+                else if (playerCar.lives === 2) {
+                    ctx.fillStyle = '#d4c200'; // Потемневший/грязный желтый
+                    ctx.fillRect(playerCar.x, playerCar.y, playerCar.w, playerCar.h);
+                    
+                    // Стекло
+                    ctx.fillStyle = '#111111';
+                    ctx.fillRect(playerCar.x + 4, playerCar.y + 12, playerCar.w - 8, 12);
+
+                    // Царапины на кузове
+                    ctx.strokeStyle = '#555555'; ctx.lineWidth = 1; ctx.setLineDash([]);
+                    ctx.beginPath(); ctx.moveTo(playerCar.x + 3, playerCar.y + 30); ctx.lineTo(playerCar.x + 12, playerCar.y + 38); ctx.stroke();
+                } 
+                else if (playerCar.lives === 1) {
+                    ctx.fillStyle = '#a39600'; // Обгоревший/побитый желтый
+                    
+                    // Рисуем помятый, деформированный кузов через полигон
+                    ctx.beginPath();
+                    ctx.moveTo(playerCar.x + 4, playerCar.y); // Вмятина спереди
+                    ctx.lineTo(playerCar.x + playerCar.w - 2, playerCar.y + 2);
+                    ctx.lineTo(playerCar.x + playerCar.w + 2, playerCar.y + 25); // Помятый бок
+                    ctx.lineTo(playerCar.x + playerCar.w - 4, playerCar.y + playerCar.h);
+                    ctx.lineTo(playerCar.x + 2, playerCar.y + playerCar.h - 2);
+                    ctx.lineTo(playerCar.x - 3, playerCar.y + 20);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Треснувшее лобовое стекло
+                    ctx.fillStyle = '#222222';
+                    ctx.fillRect(playerCar.x + 5, playerCar.y + 12, playerCar.w - 10, 12);
+                    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.setLineDash([]);
+                    ctx.beginPath(); 
+                    ctx.moveTo(playerCar.x + 8, playerCar.y + 14); ctx.lineTo(playerCar.x + 18, Math.getAbsolute || playerCar.y + 22);
+                    ctx.moveTo(playerCar.x + 14, playerCar.y + 18); ctx.lineTo(playerCar.x + 24, playerCar.y + 13);
+                    ctx.stroke();
+                }
+                
+                // Задние стоп-сигналы (при 1 жизни один из них может быть разбит)
+                ctx.fillStyle = '#ff3300';
+                ctx.fillRect(playerCar.x + 2, playerCar.y + playerCar.h - 5, 5, 3);
+                if (playerCar.lives > 1) {
+                    ctx.fillRect(playerCar.x + playerCar.w - 7, playerCar.y + playerCar.h - 5, 5, 3);
+                }
+
+                // Колёса автомобиля
+                ctx.fillStyle = '#000000'; 
+                ctx.fillRect(playerCar.x - 2, playerCar.y + 6, 2, 10); 
+                ctx.fillRect(playerCar.x + playerCar.w, playerCar.y + 6, 2, 10);
+                ctx.fillRect(playerCar.x - 2, playerCar.y + 34, 2, 10); 
+                ctx.fillRect(playerCar.x + playerCar.w, playerCar.y + 34, 2, 10);
+
+                ctx.restore();
+            }
+
+            // Отрендерить и обновить частицы дыма
+            smokeParticles.forEach((p, index) => {
+                p.x += p.vx; p.y += p.vy; p.alpha -= 0.015; p.size += 0.2;
+                if(p.alpha <= 0) { smokeParticles.splice(index, 1); return; }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                if (p.type === 'grey') {
+                    ctx.fillStyle = '#999999';
+                } else {
+                    // Чередование черного дыма и огненных искр
+                    ctx.fillStyle = Math.random() < 0.3 ? '#ff3300' : '#222222';
+                }
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Обработка бонусов (Сердечек)
+            heartItems.forEach((heart, index) => {
+                heart.y += heart.speed;
+                ctx.font = "20px Arial"; ctx.textBaseline = "top";
+                ctx.fillText("❤️", heart.x, heart.y);
+
+                if (playerCar.x < heart.x + heart.size && playerCar.x + playerCar.w > heart.x &&
+                    playerCar.y < heart.y + heart.size && playerCar.y + playerCar.h > heart.y) {
+                    
+                    // Ограничиваем максимум здоровья в 3 сердца
+                    if (playerCar.lives < 3) playerCar.lives++;
+                    updateLivesUI();
+                    heartItems.splice(index, 1);
+                    gameScore += 50;
+                    gameScoreEl.textContent = `Счёт: ${gameScore}`;
+                    
+                    raceStatusEl.textContent = '// СТАТУС: КУЗОВ ОТРЕМОНТИРОВАН! +50 ОЧКОВ';
+                    setTimeout(() => { if (gameRunning) raceStatusEl.textContent = '// СТАТУС: МАКСИМАЛЬНАЯ СКОРОСТЬ'; }, 1500);
+                }
+
+                if (heart.y > canvas.height) heartItems.splice(index, 1);
+            });
+
+            // Обработка трафика встречных машин
+            trafficCars.forEach((car, index) => {
+                car.y += car.speed;
+                ctx.fillStyle = 'var(--gta-pink)'; ctx.fillRect(car.x, car.y, car.w, car.h);
+                ctx.fillStyle = '#000'; ctx.fillRect(car.x-2, car.y+8, 2, 10); ctx.fillRect(car.x+car.w, car.y+8, 2, 10);
+
+                if (!playerCar.isInvulnerable &&
+                    playerCar.x < car.x + car.w && playerCar.x + playerCar.w > car.x &&
+                    playerCar.y < car.y + car.h && playerCar.y + playerCar.h > car.y) {
+                    
+                    playerCar.lives--;
+                    updateLivesUI();
+                    trafficCars.splice(index, 1); 
+
+                    if (playerCar.lives <= 0) {
+                        gameRunning = false;
+                        raceStatusEl.textContent = '// СТАТУС: МАШИНА ВЗОРВАНА!';
+                        startRaceBtn.textContent = 'ИГРАТЬ СНОВА';
+                    } else {
+                        playerCar.isInvulnerable = true;
+                        playerCar.invulnTimer = 100; 
+                        raceStatusEl.textContent = '// СТАТУС: СЕРЬЕЗНЫЕ ПОВРЕЖДЕНИЯ СТРУКТУРЫ КУЗОВА!';
+                        setTimeout(() => { if (gameRunning) raceStatusEl.textContent = '// СТАТУС: МАКСИМАЛЬНАЯ СКОРОСТЬ'; }, 2000);
+                    }
+                }
+
+                if (car.y > canvas.height) {
+                    trafficCars.splice(index, 1);
+                    gameScore += 15; 
+                    gameScoreEl.textContent = `Счёт: ${gameScore}`;
+                }
+            });
+
+            requestAnimationFrame(runRaceLoop);
+        }
+
+        function initRaceCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1e1e24'; ctx.fillRect(50, 0, 300, canvas.height);
+            ctx.fillStyle = 'var(--gta-pink)'; ctx.fillRect(45, 0, 5, canvas.height); ctx.fillRect(350, 0, 5, canvas.height);
+            
+            // Превью в меню выбора игры (идеальный желтый кузов)
+            ctx.fillStyle = '#ffea00'; ctx.fillRect(playerCar.x, playerCar.y, playerCar.w, playerCar.h);
+            ctx.fillStyle = '#111111'; ctx.fillRect(playerCar.x + 4, playerCar.y + 12, playerCar.w - 8, 12);
+        }
+
+        // --- УПРАВЛЕНИЕ ВКЛАДКАМИ В МЕНЮ GTA ---
+        rockstarBtn.addEventListener('click', () => {
+            gtaMenu.classList.add('active');
+            trail.style.borderColor = "var(--gta-pink)"; cursor.style.backgroundColor = "var(--gta-pink)";
+        });
+        gtaClose.addEventListener('click', () => {
+            gtaMenu.classList.remove('active'); gameRunning = false;
+            trail.style.borderColor = "var(--accent-color)"; cursor.style.backgroundColor = "var(--accent-color)";
+        });
+
+        const gtaNavItems = document.querySelectorAll('.gta-nav-item');
+        gtaNavItems.forEach(item => {
+            item.addEventListener('click', () => {
+                gtaNavItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                gameRunning = false; 
+                const tabKey = item.getAttribute('data-gta-tab');
+
+                if (tabKey === 'online') {
+                    document.getElementById('gta-static-content').style.display = 'none';
+                    document.getElementById('gta-game-content').style.display = 'flex';
+                    gameScoreEl.textContent = 'Счёт: 0'; 
+                    playerCar.lives = 3;
+                    updateLivesUI();
+                    startRaceBtn.textContent = 'СТАРТ';
+                    initRaceCanvas();
+                } else {
+                    document.getElementById('gta-static-content').style.display = 'block';
+                    document.getElementById('gta-game-content').style.display = 'none';
+                    if (gtaTabContent[tabKey]) {
+                        gtaStatusEl.textContent = gtaTabContent[tabKey].status;
+                        gtaDescEl.textContent = gtaTabContent[tabKey].desc;
+                    }
+                }
+            });
+        });
+
+        // --- ОТРЕНДЕРИТЬ КАРТОЧКИ ТРЕКОВ ---
+        function renderTracks() {
+            grid.innerHTML = '';
+            let filtered = tracks;
+
+            if (currentView === 'library') filtered = tracks.filter(t => t.liked);
+
+            if (searchQuery.trim() !== "") {
+                const query = searchQuery.toLowerCase();
+                filtered = filtered.filter(t => t.title.toLowerCase().includes(query));
+            }
+
+            if (tracks.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-library">
+                        <i class="fa-solid fa-music"></i>
+                        Плеер пуст. Нажми сверху «ЗАГРУЗИТЬ MP3» и выбери треки!
+                    </div>`;
+                return;
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-library">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        Ничего не найдено по запросу "${searchQuery}"
+                    </div>`;
+                return;
+            }
+
+            filtered.forEach((track) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                
+                if (tracks[currentTrackIndex] && track.id === tracks[currentTrackIndex].id) {
+                    card.classList.add('playing');
+                }
+
+                card.innerHTML = `
+                    <button class="delete-btn" onclick="deleteTrack(event, ${track.id})">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    <button class="like-btn ${track.liked ? 'liked' : ''}" onclick="toggleLike(event, ${track.id})">
+                        <i class="${track.liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                    </button>
+                    <div class="card-img-container">
+                        <img src="${track.cover}" alt="${track.title}">
+                        <div class="play-btn-hover">
+                            <i class="fa-solid ${isPlaying && tracks[currentTrackIndex] && track.id === tracks[currentTrackIndex].id ? 'fa-pause' : 'fa-play'}"></i>
+                        </div>
+                    </div>
+                    <div class="card-title">${track.title}</div>
+                    <div class="card-artist">${track.artist}</div>
+                `;
+
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.like-btn') && !e.target.closest('.delete-btn')) {
+                        const targetIdx = tracks.findIndex(t => t.id === track.id);
+                        selectTrack(targetIdx);
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+
+            syncCursorInteractions();
+        }
+
+        window.toggleLike = function(event, trackId) {
+            event.stopPropagation();
+            const track = tracks.find(t => t.id === trackId);
+            track.liked = !track.liked;
+            if (tracks[currentTrackIndex] && trackId === tracks[currentTrackIndex].id) updatePlayerLikeButton();
+            renderTracks();
+        }
+
+        playerLikeBtn.addEventListener('click', () => {
+            if (tracks[currentTrackIndex]) {
+                tracks[currentTrackIndex].liked = !tracks[currentTrackIndex].liked;
+                updatePlayerLikeButton();
+                renderTracks();
+            }
+        });
+
+        function updatePlayerLikeButton() {
+            if (!tracks[currentTrackIndex]) return;
+            playerLikeBtn.innerHTML = tracks[currentTrackIndex].liked ? 
+                '<i class="fa-solid fa-heart" style="color: var(--accent-color);"></i>' : '<i class="fa-regular fa-heart"></i>';
+        }
+
+        // --- НАВИГАЦИЯ ПЛЕЕРА ---
+        btnHome.addEventListener('click', () => {
+            currentView = 'home'; btnHome.classList.add('active'); btnLibrary.classList.remove('active');
+            shelfTitle.textContent = "Треки медиатеки"; renderTracks();
+        });
+
+        btnLibrary.addEventListener('click', () => {
+            currentView = 'library'; btnLibrary.classList.add('active'); btnHome.classList.remove('active');
+            shelfTitle.textContent = "Моя медиатека"; renderTracks();
+        });
+
+        btnSearchNav.addEventListener('click', () => searchInput.focus());
+        searchInput.addEventListener('input', (e) => { searchQuery = e.target.value; renderTracks(); });
+
+        // --- ДВИЖОК АУДИО ---
+        function loadTrack(index) {
+            if (tracks.length === 0) return;
+            currentTrackIndex = index;
+            audio.src = tracks[index].src;
+            audio.load();
+            
+            currentCover.src = tracks[index].cover;
+            currentTitle.textContent = tracks[index].title;
+            currentArtist.textContent = tracks[index].artist;
+            progressBar.value = 0;
+            updateSliderVisual(progressBar);
+            updatePlayerLikeButton();
+            renderTracks();
+        }
+
+        function selectTrack(index) {
+            if (currentTrackIndex === index && audio.src) {
+                togglePlay();
+            } else {
+                loadTrack(index); playTrack();
+            }
+        }
+
+        function playTrack() {
+            if (tracks.length === 0) return;
+            isPlaying = true;
+            audio.play().then(() => {
+                playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                renderTracks();
+            }).catch(() => { isPlaying = false; });
+        }
+
+        function pauseTrack() {
+            isPlaying = false; audio.pause();
+            playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            renderTracks();
+        }
+
+        function togglePlay() { isPlaying ? pauseTrack() : playTrack(); }
+
+        function nextTrack() {
+            if (tracks.length === 0) return;
+            if (isShuffle) {
+                let r; do { r = Math.floor(Math.random() * tracks.length); } while (r === currentTrackIndex && tracks.length > 1);
+                currentTrackIndex = r;
+            } else { currentTrackIndex = (currentTrackIndex + 1) % tracks.length; }
+            loadTrack(currentTrackIndex); playTrack();
+        }
+
+        function prevTrack() {
+            if (tracks.length === 0) return;
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            loadTrack(currentTrackIndex); playTrack();
+        }
+
+        function formatTime(s) {
+            if (isNaN(s)) return "0:00";
+            const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+            return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                progressBar.value = (audio.currentTime / audio.duration) * 100;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+                totalDurationEl.textContent = formatTime(audio.duration);
+                updateSliderVisual(progressBar);
+            }
+        });
+
+        progressBar.addEventListener('input', () => {
+            if (audio.duration) audio.currentTime = (progressBar.value / 100) * audio.duration;
+            updateSliderVisual(progressBar);
+        });
+
+        function updateSliderVisual(s) { s.style.setProperty('--seek-before-width', `${s.value}%`); }
+
+        playPauseBtn.addEventListener('click', togglePlay);
+        nextBtn.addEventListener('click', nextTrack);
+        prevBtn.addEventListener('click', prevTrack);
+        audio.addEventListener('ended', () => { if (isRepeat) { audio.currentTime = 0; playTrack(); } else nextTrack(); });
+
+        volumeBar.addEventListener('input', () => {
+            audio.volume = volumeBar.value / 100;
+            muteBtn.innerHTML = volumeBar.value == 0 ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+        });
+
+        muteBtn.addEventListener('click', () => {
+            audio.muted = !audio.muted;
+            muteBtn.innerHTML = audio.muted ? '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+            volumeBar.value = audio.muted ? 0 : audio.volume * 100;
+        });
+
+        shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
+        repeatBtn.addEventListener('click', () => { isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); });
+
+        renderTracks();
+        audio.volume = volumeBar.value / 100;
+        syncCursorInteractions();
+    </script>
+</body>
+</html>
